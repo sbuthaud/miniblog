@@ -3,7 +3,11 @@ services:
     name: miniblog
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      python -m pip install --upgrade pip wheel setuptools
+      pip install -r requirements.txt
+      mkdir -p instance
+      python -c "from miniblog import db, create_app; app = create_app(); app.app_context().push(); db.create_all()"
     startCommand: gunicorn "miniblog:create_app()"
     envVars:
       - key: PYTHON_VERSION
