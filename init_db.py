@@ -1,11 +1,12 @@
 from miniblog import create_app, db
-from miniblog.models import Admin
+from miniblog.models import Admin, Article, Tag
 
 def init_db():
     app = create_app()
     with app.app_context():
-        # Création des tables
+        # Création de toutes les tables
         db.create_all()
+        print("Tables créées avec succès !")
         
         # Création d'un administrateur par défaut si nécessaire
         if not Admin.query.filter_by(username='admin').first():
