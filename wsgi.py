@@ -1,10 +1,5 @@
-import os
-import sys
-
-# Ajout du répertoire du projet au PYTHONPATH
-project_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_dir)
-
+#!/usr/bin/env python3
 from miniblog import create_app
 
-app = create_app()
+application = create_app()
+app = application  # Pour la compatibilité avec Gunicorn

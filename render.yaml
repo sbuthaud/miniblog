@@ -2,15 +2,17 @@ services:
   - type: web
     name: miniblog
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: cd /opt/render/project/src && PYTHONPATH=/opt/render/project/src gunicorn --chdir /opt/render/project/src 'wsgi:app'
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: |
+      PYTHONPATH=/opt/render/project/src \
+      FLASK_APP=miniblog \
+      FLASK_ENV=production \
+      gunicorn --bind=0.0.0.0:$PORT --workers=4 --timeout=120 wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: FLASK_ENV
-        value: production
       - key: SECRET_KEY
         generateValue: true
-      - key: PYTHONPATH
-        value: /opt/render/project/src
     healthCheckPath: /
