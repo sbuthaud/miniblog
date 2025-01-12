@@ -7,13 +7,14 @@ services:
       python -m pip install --upgrade pip wheel setuptools
       pip install -r requirements.txt
       mkdir -p instance
-      python -c "from miniblog import db, create_app; app = create_app(); app.app_context().push(); db.create_all()"
-    startCommand: gunicorn "miniblog:create_app()"
+      FLASK_APP=miniblog FLASK_ENV=production python init_db.py
+    startCommand: |
+      FLASK_APP=miniblog \
+      FLASK_ENV=production \
+      gunicorn --bind 0.0.0.0:$PORT --workers 4 "miniblog:create_app()"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: FLASK_ENV
-        value: production
       - key: SECRET_KEY
         generateValue: true
     healthCheckPath: /
