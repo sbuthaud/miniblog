@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+    <div class="login-container">
+        <h2>Connexion</h2>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="post" class="login-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" required class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Se connecter</button>
+        </form>
+    </div>
+{% endblock %}

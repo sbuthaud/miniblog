@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+    {% if tags %}
+    <div class="tags-container">
+        <h3>Tags</h3>
+        <div class="tags">
+            {% for tag in tags %}
+                <a href="{{ url_for('blog.tag_view', tag_name=tag.name) }}" class="tag">#{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="articles-container">
+        {% for article in articles.items %}
+            <article class="article-card">
+                <h2 class="article-title">
+                    <a href="#article-{{ article.id }}">{{ article.title }}</a>
+                </h2>
+                <div class="article-meta">
+                    Publié le {{ article.created_at.strftime('%d/%m/%Y') }}
+                    {% if article.tags %}
+                        <div class="article-tags">
+                            {% for tag in article.tags %}
+                                <a href="{{ url_for('blog.tag_view', tag_name=tag.name) }}" class="tag">#{{ tag.name }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="article-content" id="article-{{ article.id }}">
+                    {{ article.content|markdown|safe }}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    {% if articles.has_prev or articles.has_next %}
+        <div class="pagination">
+            {% if articles.has_prev %}
+                <a href="{{ url_for('blog.index', page=articles.prev_num) }}" class="pagination-link">&laquo; Articles précédents</a>
+            {% endif %}
+            {% if articles.has_next %}
+                <a href="{{ url_for('blog.index', page=articles.next_num) }}" class="pagination-link">Articles suivants &raquo;</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

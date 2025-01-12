@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Modifier' if article else 'Nouvel' }} article{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    <h1>{{ 'Modifier' if article else 'Nouvel' }} article</h1>
+    
+    <form method="post" id="article-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+            <label for="title">Titre de l'article</label>
+            <input 
+                type="text" 
+                name="title" 
+                id="title" 
+                value="{{ article.title if article else '' }}" 
+                placeholder="Entrez un titre accrocheur..."
+                maxlength="100"
+                required
+                autocomplete="off"
+            >
+            <small class="form-text text-muted">
+                Le titre doit être clair et concis (100 caractères maximum)
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="tags">Tags (séparés par des virgules)</label>
+            <input 
+                type="text" 
+                name="tags" 
+                id="tags" 
+                value="{{ article.tags_string if article else '' }}" 
+                placeholder="technologie, tutoriel, développement..."
+                autocomplete="off"
+            >
+            <small class="form-text text-muted">
+                Suggestions : 
+                <div class="tags-hint">
+                    <span class="tag-example" onclick="addTag(this.textContent)">technologie</span>
+                    <span class="tag-example" onclick="addTag(this.textContent)">tutoriel</span>
+                    <span class="tag-example" onclick="addTag(this.textContent)">développement</span>
+                    <span class="tag-example" onclick="addTag(this.textContent)">web</span>
+                    <span class="tag-example" onclick="addTag(this.textContent)">python</span>
+                    <span class="tag-example" onclick="addTag(this.textContent)">javascript</span>
+                </div>
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="content">Contenu (format Markdown)</label>
+            <textarea 
+                name="content" 
+                id="content" 
+                class="form-control" 
+                placeholder="Rédigez votre article ici en utilisant la syntaxe Markdown..."
+                spellcheck="true"
+                autocomplete="off"
+            >{{ article.content if article else '' }}</textarea>
+            <div class="markdown-guide">
+                <ul>
+                    <li><code>**texte**</code> gras</li>
+                    <li><code>*texte*</code> italique</li>
+                    <li><code># Titre</code> titre niveau 1</li>
+                    <li><code>## Titre</code> titre niveau 2</li>
+                    <li><code>### Titre</code> titre niveau 3</li>
+                    <li><code>[texte](url)</code> lien</li>
+                    <li><code>---</code> séparateur</li>
+                    <li><code>- item</code> liste à puces</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="preview" class="content-preview markdown-body">
+            <div class="preview-header">
+                <h3 class="preview-title">{{ article.title if article else 'Nouvel article' }}</h3>
+            </div>
+            {{ article.html|safe if article else '' }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Fonction pour ajouter un tag
+function addTag(tag) {
+    const tagsInput = document.getElementById('tags');
+    const currentTags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t);
+    
+    // Vérifier si le tag existe déjà
+    if (!currentTags.includes(tag)) {
+        // Ajouter le tag
+        if (currentTags.length > 0) {
+            tagsInput.value = currentTags.join(', ') + ', ' + tag;
+        } else {
+            tagsInput.value = tag;
+        }
+    }
+    
+    // Focus sur l'input
+    tagsInput.focus();
+}
+
+// Obtenir le token CSRF depuis le formulaire
+function getCsrfToken() {
+    const tokenInput = document.querySelector('input[name="csrf_token"]');
+    return tokenInput ? tokenInput.value : '';
+}
+
+// Fonction pour la prévisualisation avec gestion des erreurs améliorée
+function updatePreview() {
+    const content = document.getElementById('content').value;
+    const preview = document.getElementById('preview');
+    const titleInput = document.getElementById('title');
+    const csrfToken = getCsrfToken();
+    
+    // Vérifier si on a bien le token CSRF
+    if (!csrfToken) {
+        preview.innerHTML = `
+            <div class="preview-error">
+                <p>Erreur de sécurité : Token CSRF manquant</p>
+                <small>Veuillez rafraîchir la page</small>
+            </div>
+        `;
+        return;
+    }
+    
+    // Afficher un message de chargement
+    preview.innerHTML = '<div class="preview-loading">Chargement de la prévisualisation...</div>';
+    
+    fetch('/preview', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ content: content })
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error('Session expirée. Veuillez vous reconnecter.');
+            }
+            throw new Error('Erreur réseau');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        preview.innerHTML = `
+            <div class="preview-header">
+                <h3 class="preview-title">${titleInput.value || 'Nouvel article'}</h3>
+            </div>
+            <div class="preview-content markdown-body">
+                ${data.html || '<p class="text-muted">Aucun contenu à afficher</p>'}
+            </div>
+        `;
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        preview.innerHTML = `
+            <div class="preview-error">
+                <p>Erreur lors de la prévisualisation</p>
+                <small>${error.message}</small>
+            </div>
+        `;
+    });
+}
+
+// Initialisation avec debounce pour éviter trop d'appels
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('content');
+    const titleInput = document.getElementById('title');
+    
+    if (textarea) {
+        let timeout;
+        const debouncedUpdate = () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(updatePreview, 500);
+        };
+        
+        textarea.addEventListener('input', debouncedUpdate);
+        titleInput.addEventListener('input', debouncedUpdate);
+        // Mise à jour initiale
+        updatePreview();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <header class="dashboard-header">
+            <h1>Tableau de bord</h1>
+            <button onclick="window.location.href='{{ url_for('blog.new_article') }}'" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Nouvel article
+            </button>
+        </header>
+
+        <section class="articles-section">
+            <h2>Vos articles</h2>
+            
+            {% if articles %}
+                <div class="articles-grid">
+                    {% for article in articles %}
+                        <div class="article-card">
+                            <div class="article-header">
+                                <h3>{{ article.title }}</h3>
+                                <span class="article-date">Publié le {{ article.created_at.strftime('%d/%m/%Y') }}</span>
+                            </div>
+
+                            {% if article.tags %}
+                                <div class="article-tags">
+                                    {% for tag in article.tags %}
+                                        <span class="tag">#{{ tag.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <div class="article-actions">
+                                <a href="{{ url_for('blog.edit_article', id=article.id) }}" class="btn btn-edit">
+                                    <i class="fas fa-edit"></i>
+                                    Modifier
+                                </a>
+                                <button type="button" class="btn btn-delete" onclick="if(confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) { document.getElementById('delete-form-{{ article.id }}').submit(); }">
+                                    <i class="fas fa-trash"></i>
+                                    Supprimer
+                                </button>
+                                <form id="delete-form-{{ article.id }}" action="{{ url_for('blog.delete_article', id=article.id) }}" method="post" style="display: none;"></form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-articles">
+                    <p>Vous n'avez pas encore écrit d'articles.</p>
+                    <button onclick="window.location.href='{{ url_for('blog.new_article') }}'" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Créer votre premier article
+                    </button>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}
