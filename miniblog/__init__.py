@@ -61,17 +61,18 @@ def create_app():
 
     # Initialisation des extensions
     db.init_app(app)
-    login_manager.init_app(app)
     csrf.init_app(app)
+    
+    # Configuration de Flask-Login
+    login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
-
-    # Import des modèles
-    from .models import Admin
-
+    login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
+    
     @login_manager.user_loader
     def load_user(user_id):
+        from .models import Admin
         return Admin.query.get(int(user_id))
-
+    
     # Ajout du filtre Markdown
     @app.template_filter('markdown')
     def markdown_filter(text):
