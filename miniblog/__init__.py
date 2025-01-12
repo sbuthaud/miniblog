@@ -22,9 +22,13 @@ def create_app():
     # Configuration du chemin de la base de données
     if is_development:
         # En développement, utilise le dossier instance local
-        db_path = 'sqlite:///blog.db'
+        instance_path = os.path.join(app.instance_path, 'blog.db')
+        db_path = f'sqlite:///{instance_path}'
+        # Crée le dossier instance s'il n'existe pas
+        os.makedirs(app.instance_path, exist_ok=True)
     else:
-        # En production sur Render, utilise un volume persistant
+        # En production sur Render, utilise le volume persistant
+        os.makedirs('/data', exist_ok=True)
         db_path = 'sqlite:////data/blog.db'
     
     # Configuration de base
