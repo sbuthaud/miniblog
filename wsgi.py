@@ -1,0 +1,3 @@
+from miniblog import create_app
+
+app = create_app()
