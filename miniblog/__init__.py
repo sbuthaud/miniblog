@@ -28,7 +28,6 @@ def create_app():
         os.makedirs(app.instance_path, exist_ok=True)
     else:
         # En production sur Render, utilise le volume persistant
-        os.makedirs('/data', exist_ok=True)
         db_path = 'sqlite:////data/blog.db'
     
     # Configuration de base

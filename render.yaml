@@ -10,8 +10,6 @@ services:
     buildCommand: |
       python -m pip install --upgrade pip wheel setuptools
       pip install -r requirements.txt
-      mkdir -p /data
-      chmod 777 /data
       FLASK_APP=miniblog FLASK_ENV=production python init_db.py
     startCommand: |
       FLASK_APP=miniblog \
