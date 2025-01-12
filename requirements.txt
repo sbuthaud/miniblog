@@ -11,3 +11,4 @@ bleach==6.1.0
 markdown==3.5.1
 python-dotenv==1.0.0
 email-validator==2.1.0.post1
+gunicorn==21.2.0
