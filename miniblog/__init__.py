@@ -19,9 +19,17 @@ def create_app():
     env = os.environ.get('FLASK_ENV', 'development')
     is_development = env == 'development'
     
+    # Configuration du chemin de la base de données
+    if is_development:
+        # En développement, utilise le dossier instance local
+        db_path = 'sqlite:///blog.db'
+    else:
+        # En production sur Render, utilise un volume persistant
+        db_path = 'sqlite:////data/blog.db'
+    
     # Configuration de base
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_path
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Configuration de sécurité adaptée à l'environnement

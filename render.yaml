@@ -3,10 +3,14 @@ services:
     name: miniblog
     env: python
     plan: free
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
     buildCommand: |
       python -m pip install --upgrade pip wheel setuptools
       pip install -r requirements.txt
-      mkdir -p instance
+      mkdir -p /data
       FLASK_APP=miniblog FLASK_ENV=production python init_db.py
     startCommand: |
       FLASK_APP=miniblog \
@@ -17,4 +21,8 @@ services:
         value: 3.11.0
       - key: SECRET_KEY
         generateValue: true
+      - key: FLASK_APP
+        value: miniblog
+      - key: FLASK_ENV
+        value: production
     healthCheckPath: /
